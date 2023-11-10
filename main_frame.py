@@ -12,18 +12,9 @@ class MainWindow:
         self.lottery.config(bg='#DCF4FF')
         self.limits = limits_num
         self.condition_entries = []
-        self.condition_equals = [">=", ">", "=", "<", "<="]
-        self.condition_operation = ["+", "-", "/", "*"]
+        # self.condition_equals = [">=", ">", "=", "<", "<="]
+        # self.condition_operation = ["+", "-", "/", "*"]
         self.MIN_MAX_var = tk.BooleanVar(self.lottery)
-
-    def read_entries(self):
-        for condition_X1, condition_c_op, condition_X2, condition_choice, condition_S in self.condition_entries:
-            print(condition_X1.get(), condition_c_op.get(), condition_X2.get(), condition_choice.get(),
-                  condition_S.get())
-        print(self.A_entr.get())
-        print(self.B_entr.get())
-        print(self.EQ_entr.get())
-        print(self.MIN_MAX_var.get())
 
     def create_widgets(self):
         self.lottery.configure(bg='#DCF4FF')  # Настроим фон для окна
@@ -42,11 +33,8 @@ class MainWindow:
 
         self.A_entr.pack(side=tk.LEFT, padx=5)
         tk.Label(input_frame, text='A', bg='#DCF4FF').pack(side=tk.LEFT, padx=5)
-        tk.Label(input_frame, text='+', bg='#DCF4FF').pack(side=tk.LEFT, padx=5)
         self.B_entr.pack(side=tk.LEFT, padx=5)
         tk.Label(input_frame, text='B', bg='#DCF4FF').pack(side=tk.LEFT, padx=5)
-        tk.Label(input_frame, text='=', bg='#DCF4FF').pack(side=tk.LEFT, padx=5)
-        self.EQ_entr.pack(side=tk.LEFT, padx=5)
 
         # Создаем фрейм для MAX
         max_frame = tk.Frame(self.lottery, bg='#DCF4FF')
@@ -67,17 +55,12 @@ class MainWindow:
             condition_frame = tk.Frame(conditions_frame, bg='#DCF4FF')
             condition_frame.pack()
 
-            condition_choice = tk.StringVar(self.lottery)
-            condition_c_op = tk.StringVar(self.lottery)
-
             condition_X1 = tk.Entry(condition_frame, width=5)
             condition_X2 = tk.Entry(condition_frame, width=5)
             condition_const_x1 = tk.Label(condition_frame, width=5, text='x1', bg='#DCF4FF')
             condition_const_x2 = tk.Label(condition_frame, width=5, text='x2', bg='#DCF4FF')
-            condition_EQ = tk.OptionMenu(condition_frame, condition_choice, *self.condition_equals)
-            condition_choice.set("=")
-            condition_OP = tk.OptionMenu(condition_frame, condition_c_op, *self.condition_operation)
-            condition_c_op.set("+")
+            condition_EQ = tk.Label(condition_frame, text='<=', bg='#DCF4FF')
+            condition_OP = tk.Label(condition_frame, text='+', bg='#DCF4FF')
             condition_S = tk.Entry(condition_frame, width=5)
 
             condition_X1.pack(side=tk.LEFT, padx=5)
@@ -88,11 +71,30 @@ class MainWindow:
             condition_EQ.pack(side=tk.LEFT, padx=5)
             condition_S.pack(side=tk.LEFT, padx=5)
 
-            self.condition_entries.append((condition_X1, condition_c_op, condition_X2, condition_choice, condition_S))
+            self.condition_entries.append((condition_X1, condition_X2, condition_S))
 
-        decision_btn = tk.Button(self.lottery, text='Рішення', font=("Times New Roman", 16), command=self.read_entries)
+        decision_btn = tk.Button(self.lottery, text='Рішення', font=("Times New Roman", 16), command=self.calculate)
         decision_btn.pack(pady=10)
 
+    def calculate(self):
+        if self.MIN_MAX_var.get() == True:
+            c = [-1 * float(self.A_entr.get()), -1 * float(self.B_entr.get())]
+        else:
+            c = [float(self.A_entr.get()), float(self.B_entr.get())]
+
+        A_arr = []
+        b_arr = []
+
+        for condition_X1, condition_X2, condition_S in self.condition_entries:
+            A = [float(condition_X1.get()), float(condition_X2.get())]
+            b = float(condition_S.get())
+            A_arr.append(A)
+            b_arr.append(b)
+
+        res = linprog(c, A_ub=A_arr, b_ub=b_arr)
+        print(f"Полки типа А: {round(res.x[0])}, Полки типа B: {round(res.x[1])},"
+              f" Прибуток: {round(res.x[0]) * float(self.A_entr.get()) + round(res.x[1]) * float(self.B_entr.get())}")
+
+
     def run(self):
-        print(self.limits)
         self.lottery.mainloop()
