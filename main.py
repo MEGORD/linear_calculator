@@ -1,4 +1,4 @@
-from limitation import LimitationWindow
+from limitation_frame import LimitationWindow
 
 
 lim = LimitationWindow()
